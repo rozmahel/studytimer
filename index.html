@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>Pomodoro</title>
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+<script>try{var k=localStorage.getItem('pomodoro_skin');if(k==="paper"||k==="forest")document.documentElement.setAttribute('data-skin',k);}catch(e){}</script>
+</head>
+<body class="mode-work">
+<script>try{if(localStorage.getItem('pomodoro_theme')!=='dark')document.body.classList.add('light');}catch(e){}</script>
+
+<!-- ICON SPRITE -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-5M13 17V8M18 17v-9"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+    <symbol id="i-focus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></symbol>
+    <symbol id="i-skip" viewBox="0 0 24 24"><path d="m5 4 10 8-10 8V4Z"/><path d="M19 5v14"/></symbol>
+    <symbol id="i-prev" viewBox="0 0 24 24"><path d="m19 20-10-8 10-8v16Z"/><path d="M5 19V5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5-12-7.5Z" fill="currentColor"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4.5" width="4" height="15" rx="1" fill="currentColor"/><rect x="14" y="4.5" width="4" height="15" rx="1" fill="currentColor"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-vol-low" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5Z"/></symbol>
+    <symbol id="i-vol-high" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">Study Timer</div>
+
+    <nav class="nav">
+      <button class="nav-item nav-tab active" data-view="timer"><svg class="ic"><use href="#i-clock"/></svg><span>Časovač</span></button>
+      <button class="nav-item nav-tab" data-view="overview"><svg class="ic"><use href="#i-chart"/></svg><span>Přehled</span></button>
+    </nav>
+
+    <div class="side-section">
+      <div class="side-head">
+        <span>Projekty</span>
+        <button class="side-add" id="side-add-project" title="Nový projekt"><svg class="ic"><use href="#i-plus"/></svg></button>
+      </div>
+      <div class="side-projects" id="side-projects"></div>
+    </div>
+
+    <div class="side-foot">
+      <button class="daily" id="daily-goal" hidden>
+        <span class="daily-top"><span>Dnešní cíl</span><span id="daily-val"></span></span>
+        <span class="daily-bar"><span id="daily-fill"></span></span>
+      </button>
+      <div class="music-quick-wrap">
+        <div class="music-row">
+          <button class="nav-item music-open" id="music-toggle" title="Přehrávač hudby">
+            <svg class="ic"><use href="#i-music"/></svg><span>Hudba</span><i class="music-live"></i>
+          </button>
+          <button class="mq-play" id="mq-play" title="Přehrát / pozastavit"><svg class="ic"><use href="#i-play"/></svg></button>
+        </div>
+        <div class="music-quick" id="music-quick">
+          <svg class="ic ic-sm"><use href="#i-vol-low"/></svg>
+          <input type="range" id="mq-vol" min="0" max="100" value="50" title="Hlasitost">
+        </div>
+      </div>
+      <button class="nav-item" id="settings-btn" title="Nastavení"><svg class="ic"><use href="#i-sliders"/></svg><span>Nastavení</span></button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="crumb" id="crumb">Časovač</div>
+        <div class="top-actions">
+          <div class="session-badge">Blok <b id="session-num">1</b></div>
+          <button class="tb-btn" id="focus-toggle" title="Režim soustředění (F)">
+            <svg class="ic"><use href="#i-focus"/></svg><span class="focus-on-label">Soustředění</span><span class="focus-off-label">Ukončit</span>
+          </button>
+          <span class="tb-sep"></span>
+          <div class="theme-wrap" id="theme-wrap">
+            <button class="tb-btn tb-icon" id="theme-toggle" title="Vzhled" aria-haspopup="true" aria-expanded="false"><svg class="ic"><use href="#i-sun"/></svg></button>
+            <div class="theme-menu" id="theme-menu" role="menu" aria-label="Vzhled">
+              <div class="menu-label">Motiv</div>
+              <div class="skin-list" id="skin-list"></div>
+              <div class="menu-label">Režim</div>
+              <div class="seg" id="mode-seg">
+                <button data-mode="light" role="menuitemradio"><svg class="ic"><use href="#i-sun"/></svg>Světlý</button>
+                <button data-mode="dark" role="menuitemradio"><svg class="ic"><use href="#i-moon"/></svg>Tmavý</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TIMER VIEW -->
+    <section class="view timer-view active" id="view-timer">
+      <div class="page">
+        <div class="page-head">
+          <div class="project-selector">
+            <select id="active-project" aria-label="Aktivní projekt"></select>
+          </div>
+          <div id="stats-proj-header" class="proj-head" style="display:none">
+            <h1 class="page-title"><span class="title-dot" id="project-dot"></span><span id="stats-proj-name"></span></h1>
+            <div class="goal-row">
+              <div class="goal-bar"><div id="stats-proj-bar"></div></div>
+              <span id="stats-proj-pct"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timer-layout">
+          <div class="timer-card timer-main">
+            <div class="mode-tabs">
+              <button class="mode-tab active" id="work-btn">Práce</button>
+              <button class="mode-tab" id="break-btn">Přestávka</button>
+            </div>
+
+            <div class="ring-wrap">
+              <svg viewBox="0 0 280 280">
+                <circle class="ring-bg" cx="140" cy="140" r="108"/>
+                <circle id="progress-ring" cx="140" cy="140" r="108"/>
+              </svg>
+              <div class="ring-center">
+                <div id="mode-emoji"></div>
+                <div id="timer-display">
+                  <span id="timer-min" class="timer-part editable" title="Klikni pro úpravu">40</span><span class="timer-colon">:</span><span id="timer-sec" class="timer-part editable" title="Klikni pro úpravu">00</span>
+                </div>
+                <div id="mode-label">PRÁCE</div>
+              </div>
+            </div>
+
+            <div class="controls">
+              <button class="btn-round" id="reset-btn" title="Reset (R)"><svg class="ic"><use href="#i-reset"/></svg></button>
+              <button class="btn-primary" id="start-btn" title="Start / pauza (mezerník)">Start</button>
+              <button class="btn-round" id="skip-btn" title="Přeskočit (S)"><svg class="ic"><use href="#i-skip"/></svg></button>
+            </div>
+            <div id="status-line">Připraven · klikni na čísla pro úpravu délky</div>
+          </div>
+
+          <aside class="stats-panel">
+            <div class="stats-section">
+              <div class="section-title">Dnes</div>
+              <div class="stat-grid">
+                <div class="stat-card highlight"><div class="label">Odpracováno</div><div class="value" id="stat-today-time">0h 0min</div></div>
+                <div class="stat-card"><div class="label">Bloky</div><div class="value" id="stat-today-sessions">0</div></div>
+                <div class="stat-card"><div class="label">Spuštění</div><div class="value" id="stat-today-starts">0</div></div>
+              </div>
+            </div>
+            <div class="stats-section">
+              <div class="stat-grid">
+                <div class="stat-card"><div class="label">Série</div><div class="value" id="stat-streak">—</div></div>
+                <div class="stat-card"><div class="label">Tento týden</div><div class="value" id="stat-week-time">0h 0min</div></div>
+              </div>
+            </div>
+            <div class="stats-section">
+              <div class="section-title">Aktivita · 5 týdnů</div>
+              <div id="heatmap"></div>
+            </div>
+            <div class="stats-section">
+              <div class="section-title">Celkem</div>
+              <div class="stat-list">
+                <div class="stat-line"><span class="label">Odpracováno</span><span class="value" id="stat-total-time">0h 0min</span></div>
+                <div class="stat-line"><span class="label">Bloků</span><span class="value" id="stat-total-sessions">0</span></div>
+                <div class="stat-line"><span class="label">Spuštění</span><span class="value" id="stat-total-starts">0</span></div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- OVERVIEW VIEW -->
+    <section class="view overview-view" id="view-overview">
+      <div class="page">
+        <h1 class="page-title">Přehled</h1>
+        <div class="overview-totals" id="overview-totals"></div>
+
+        <h2 class="section-title">Posledních 7 dní</h2>
+        <div class="week-chart" id="week-chart"></div>
+        <div class="week-legend" id="week-legend"></div>
+
+        <h2 class="section-title">Projekty</h2>
+        <div class="projects-grid" id="projects-grid"></div>
+
+        <h2 class="section-title">Celková aktivita · 15 týdnů</h2>
+        <div id="overview-hm" class="overview-hm"></div>
+
+        <h2 class="section-title">Historie bloků</h2>
+        <div class="history" id="history"></div>
+        <button class="pill pill-sm history-more" id="history-more" hidden>Zobrazit další</button>
+
+        <h2 class="section-title">Data</h2>
+        <div id="export-reminder" class="export-reminder" style="display:none" onclick="App.doExport();this.style.display='none'"></div>
+        <div class="data-actions">
+          <button class="pill" id="export-btn"><svg class="ic"><use href="#i-download"/></svg>Export dat</button>
+          <button class="pill" id="import-btn"><svg class="ic"><use href="#i-upload"/></svg>Import dat</button>
+          <button class="pill pill-danger" id="reset-all-btn"><svg class="ic"><use href="#i-trash"/></svg>Smazat vše</button>
+        </div>
+        <input type="file" id="import-file" accept=".json" hidden>
+        <div class="version">Study Timer v5.1</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- MUSIC PLAYER -->
+<div class="music-overlay" id="music-overlay">
+  <div class="music-panel">
+    <div class="music-panel-header">
+      <h3>Přehrávač</h3>
+      <button class="icon-btn" id="music-close" title="Zavřít"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="music-now">
+      <div class="track-name" id="pl-track">Žádná hudba</div>
+      <div class="track-time" id="pl-time">0:00 / 0:00</div>
+    </div>
+    <div class="music-progress" id="pl-progress-bar">
+      <div class="music-progress-fill" id="pl-progress-fill"></div>
+    </div>
+    <div class="music-controls">
+      <button class="btn-round" id="pl-prev" title="Předchozí"><svg class="ic"><use href="#i-prev"/></svg></button>
+      <button class="btn-round play" id="pl-play" title="Přehrát / pozastavit"><svg class="ic"><use href="#i-play"/></svg></button>
+      <button class="btn-round" id="pl-next" title="Další"><svg class="ic"><use href="#i-skip"/></svg></button>
+    </div>
+    <div class="music-volume">
+      <svg class="ic ic-sm"><use href="#i-vol-low"/></svg>
+      <input type="range" id="pl-vol" min="0" max="100" value="50">
+      <svg class="ic ic-sm"><use href="#i-vol-high"/></svg>
+    </div>
+    <div class="music-tracklist-header">
+      <span class="section-title">Seznam skladeb</span>
+      <button class="pill pill-sm" id="pl-add"><svg class="ic"><use href="#i-plus"/></svg>Přidat soubory</button>
+    </div>
+    <div class="music-tracklist" id="pl-tracklist">
+      <div class="music-empty">Zatím žádné skladby.<br>Přidej mp3 soubory tlačítkem výše.</div>
+    </div>
+    <label class="switch-row">
+      <span>Automaticky přehrávat při práci</span>
+      <input type="checkbox" id="pl-autoplay">
+      <span class="switch"></span>
+    </label>
+    <input type="file" id="pl-file" accept="audio/*" multiple hidden>
+  </div>
+</div>
+
+<!-- PROJECT MODAL -->
+<div class="modal-overlay" id="project-modal">
+  <div class="modal">
+    <h3 id="modal-title">Nový projekt</h3>
+    <label for="modal-name">Název projektu</label>
+    <input type="text" id="modal-name" placeholder="např. Bakalářka">
+    <label for="modal-goal">Cíl (hodiny)</label>
+    <input type="number" id="modal-goal" placeholder="100" min="1" value="100">
+    <label>Barva projektu</label>
+    <div class="color-grid" id="color-grid"></div>
+    <div class="modal-btns">
+      <button class="modal-btn-cancel" id="modal-cancel">Zrušit</button>
+      <button class="modal-btn-ok" id="modal-ok">Uložit</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal modal-settings">
+    <h3>Nastavení</h3>
+    <div class="set-group">
+      <div class="section-title">Denní cíl</div>
+      <div class="set-row"><label for="set-goal">Hodin denně (všechny projekty, 0 = vypnuto)</label><input type="number" id="set-goal" min="0" step="0.5"></div>
+    </div>
+    <div class="set-group">
+      <div class="section-title">Dlouhá přestávka</div>
+      <label class="switch-row"><span>Po několika blocích dát delší přestávku</span><input type="checkbox" id="set-long"><span class="switch"></span></label>
+      <div id="long-fields">
+        <div class="set-row"><label for="set-long-min">Délka (min)</label><input type="number" id="set-long-min" min="1" step="1"></div>
+        <div class="set-row"><label for="set-long-every">Po každém N-tém bloku</label><input type="number" id="set-long-every" min="2" step="1"></div>
+      </div>
+    </div>
+    <div class="set-group">
+      <div class="section-title">Klávesové zkratky</div>
+      <div class="kbd-list">
+        <div><kbd>Mezerník</kbd><span>Start / pauza</span></div>
+        <div><kbd>R</kbd><span>Reset</span></div>
+        <div><kbd>S</kbd><span>Přeskočit fázi</span></div>
+        <div><kbd>F</kbd><span>Režim soustředění</span></div>
+        <div><kbd>Esc</kbd><span>Zavřít okno / ukončit soustředění</span></div>
+      </div>
+    </div>
+    <div class="modal-btns"><button class="modal-btn-ok" id="settings-close">Hotovo</button></div>
+  </div>
+</div>
+
+<!-- TIME ADD MODAL -->
+<div class="modal-overlay" id="time-modal">
+  <div class="modal">
+    <h3>Přidat čas</h3>
+    <div id="time-modal-project" class="modal-sub"></div>
+    <label for="time-date">Datum</label>
+    <input type="date" id="time-date">
+    <label for="time-minutes">Minuty (záporné pro odebrání)</label>
+    <input type="number" id="time-minutes" placeholder="30" value="30">
+    <div class="modal-btns">
+      <button class="modal-btn-cancel" id="time-cancel">Zrušit</button>
+      <button class="modal-btn-ok" id="time-ok">Přidat</button>
+    </div>
+  </div>
+</div>
+
+<script src="globals.js"></script>
+<script src="sound.js"></script>
+<script src="settings.js"></script>
+<script src="stats.js"></script>
+<script src="projects.js"></script>
+<script src="theme.js"></script>
+<script src="charts.js"></script>
+<script src="player.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
