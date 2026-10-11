@@ -1,4 +1,4 @@
-const CACHE_NAME = 'study-timer-v1';
+const CACHE_NAME = 'study-timer-v3.0.1';
 const ASSETS = [
   './',
   './index.html',
