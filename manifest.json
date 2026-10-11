@@ -1,11 +1,11 @@
 {
   "name": "Study Timer",
-  "short_name": "Study Timer",
-  "description": "Study Timer – časovač pro studium a práci od Marka",
+  "short_name": "Timer",
+  "description": "Pomodoro časovač pro studium a práci",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#FBFAFD",
-  "theme_color": "#FBFAFD",
+  "background_color": "#0a0a12",
+  "theme_color": "#0a0a12",
   "orientation": "any",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
