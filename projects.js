@@ -1,5 +1,5 @@
 // ═══════ PROJECTS ═══════
-const Projects=(()=>{const K='pomodoro_projects_v1';
+const Projects=(()=>{const K='studytimer_projects_v1';
 function ld(){try{return JSON.parse(localStorage.getItem(K))||[];}catch{return[];}}
 function sv(p){localStorage.setItem(K,JSON.stringify(p));}
 function find(p,id){return p.findIndex(x=>x.id===id);}
@@ -28,7 +28,7 @@ getById(id){return ld().find(p=>p.id===id)||null;},
 getStats(id){const p=ld().find(x=>x.id===id);if(!p)return null;const days=p.days||{};const k=dayKey();const tSec=days[k]||0;
   let wSec=0;for(let i=0;i<7;i++)wSec+=days[dayKey(daysAgo(i))]||0;
   let streak=0,i=days[k]>0?0:1;while(days[dayKey(daysAgo(i))]>0){streak++;i++;}
-  const hm=[];for(let j=34;j>=0;j--){const k2=dayKey(daysAgo(j));hm.push({date:k2,seconds:days[k2]||0});}
+  const hm=[];for(let j=weeksBack(5);j>=0;j--){const k2=dayKey(daysAgo(j));hm.push({date:k2,seconds:days[k2]||0});}
   const ds=p.daySessions||{};
   return{todaySec:tSec,weekSec:wSec,totalSec:p.workedSeconds||0,sessions:p.sessions||0,todaySessions:ds[k]||0,streak,heatmap:hm,goalHours:p.goalHours,name:p.name,color:p.color};}
 };})();

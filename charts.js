@@ -17,7 +17,8 @@ function initTip(){
 }
 
 // ── Heatmapa ──
-// data: [{date:'YYYY-MM-DD', seconds}] chronologicky; opts: {color, max, labels}
+// data: [{date:'YYYY-MM-DD', seconds}] chronologicky; opts: {color, max, labels, fluid}
+// fluid = buňky se roztáhnou na celou šířku kontejneru
 function heatmap(el,data,opts){if(!el||!data.length)return;opts=opts||{};
   const max=opts.max||Math.max(...data.map(d=>d.seconds),1);
   const pad=(parseDay(data[0].date).getDay()+6)%7; // Po = 0
@@ -26,8 +27,10 @@ function heatmap(el,data,opts){if(!el||!data.length)return;opts=opts||{};
     const t=fmtDayShort(d.date)+(d.date===dayKey()?' · dnes':'')+'\n'+(d.seconds>0?fmtDur(d.seconds):'bez práce');
     const st=opts.color&&l>0?' style="background:'+hexToGlow(opts.color,[0,.25,.5,.75,1][l])+'"':'';
     return'<span class="hm-cell hm-'+l+(d.date===dayKey()?' today':'')+'"'+st+' data-tip="'+esc(t)+'"></span>';}).join('');
-  const labels=opts.labels===false?'':'<div class="hm-days"><span>Po</span><span></span><span>St</span><span></span><span>Pá</span><span></span><span></span></div>';
-  el.classList.add('hm');el.innerHTML=labels+'<div class="hm-cells">'+cells+'</div>';}
+  const labels=opts.labels===false?'':WD_LABELS.map(d=>'<span class="hm-day">'+d+'</span>').join('');
+  el.classList.add('hm');el.classList.toggle('hm-fluid',!!opts.fluid);el.classList.toggle('hm-nolabels',opts.labels===false);
+  el.style.setProperty('--hm-w',Math.ceil((pad+data.length)/7));
+  el.innerHTML=labels+cells;}
 
 // ── Posledních 7 dní, skládané podle projektů ──
 function week(el,legendEl,prjs){if(!el)return;
@@ -49,7 +52,7 @@ function week(el,legendEl,prjs){if(!el)return;
     legendEl.innerHTML=used.length>1?used.map(p=>'<span class="lg"><i style="background:'+(p.color||'#6E3CD0')+'"></i>'+esc(p.name)+'</span>').join(''):'';}}
 
 // ── Favicon s průběhem ──
-const DEF='icon-192.png';let link=null,lastKey='',cv=null;
+const DEF='favicon-32.png';let link=null,lastKey='',cv=null;
 function favicon(progress,color,active){
   if(!link){link=document.querySelector('link[rel="icon"]');cv=document.createElement('canvas');cv.width=cv.height=64;}
   const key=active?Math.round(progress*60)+'|'+color:'off';if(key===lastKey)return;lastKey=key;

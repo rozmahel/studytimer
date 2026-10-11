@@ -4,13 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
-<title>Pomodoro</title>
-<link rel="icon" type="image/png" href="icon-192.png">
+<title>Study Timer</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="style.css">
-<script>try{var k=localStorage.getItem('pomodoro_skin');if(k==="paper"||k==="forest")document.documentElement.setAttribute('data-skin',k);}catch(e){}</script>
+<script>
+/* Přejmenování pomodoro → studytimer: jednorázově zkopírovat stará data pod nové klíče (staré zůstávají jako záloha). */
+try{if(!localStorage.getItem('studytimer_migrated')){for(var i=0;i<localStorage.length;i++){var o=localStorage.key(i);if(o&&o.indexOf('pomodoro_')===0){var n='studytimer_'+o.slice(9);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(o));}}localStorage.setItem('studytimer_migrated','1');}}catch(e){}
+</script>
+<script>try{var k=localStorage.getItem('studytimer_skin');if(k==="paper"||k==="forest")document.documentElement.setAttribute('data-skin',k);}catch(e){}</script>
 </head>
 <body class="mode-work">
-<script>try{if(localStorage.getItem('pomodoro_theme')!=='dark')document.body.classList.add('light');}catch(e){}</script>
+<script>try{if(localStorage.getItem('studytimer_theme')!=='dark')document.body.classList.add('light');}catch(e){}</script>
 
 <!-- ICON SPRITE -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -24,6 +30,7 @@
     <symbol id="i-reset" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></symbol>
     <symbol id="i-skip" viewBox="0 0 24 24"><path d="m5 4 10 8-10 8V4Z"/><path d="M19 5v14"/></symbol>
     <symbol id="i-prev" viewBox="0 0 24 24"><path d="m19 20-10-8 10-8v16Z"/><path d="M5 19V5"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="m5 4 10 8-10 8V4Z"/><path d="M19 5v14"/></symbol>
     <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5-12-7.5Z" fill="currentColor"/></symbol>
     <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4.5" width="4" height="15" rx="1" fill="currentColor"/><rect x="14" y="4.5" width="4" height="15" rx="1" fill="currentColor"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
@@ -49,6 +56,26 @@
       <button class="nav-item nav-tab" data-view="overview"><svg class="ic"><use href="#i-chart"/></svg><span>Přehled</span></button>
     </nav>
 
+    <!-- Hudba: ovládání je vždy vidět, hlasitost vyjede po najetí jako plovoucí vrstva přes menu -->
+    <div class="music-quick-wrap">
+      <div class="music-row">
+        <button class="nav-item music-open" id="music-toggle" title="Přehrávač hudby">
+          <svg class="ic"><use href="#i-music"/></svg><span>Hudba</span><i class="music-live"></i>
+        </button>
+        <button class="mq-btn mq-skip" id="mq-prev" title="Předchozí skladba"><svg class="ic"><use href="#i-prev"/></svg></button>
+        <button class="mq-btn mq-play" id="mq-play" title="Přehrát / pozastavit"><svg class="ic"><use href="#i-play"/></svg></button>
+        <button class="mq-btn mq-skip" id="mq-next" title="Další skladba"><svg class="ic"><use href="#i-next"/></svg></button>
+      </div>
+      <div class="music-quick" id="music-quick">
+        <div class="mq-track" id="mq-track">Žádná hudba</div>
+        <div class="mq-vol-row">
+          <svg class="ic ic-sm"><use href="#i-vol-low"/></svg>
+          <input type="range" id="mq-vol" min="0" max="100" value="50" title="Hlasitost" aria-label="Hlasitost">
+          <svg class="ic ic-sm"><use href="#i-vol-high"/></svg>
+        </div>
+      </div>
+    </div>
+
     <div class="side-section">
       <div class="side-head">
         <span>Projekty</span>
@@ -62,19 +89,7 @@
         <span class="daily-top"><span>Dnešní cíl</span><span id="daily-val"></span></span>
         <span class="daily-bar"><span id="daily-fill"></span></span>
       </button>
-      <div class="music-quick-wrap">
-        <div class="music-row">
-          <button class="nav-item music-open" id="music-toggle" title="Přehrávač hudby">
-            <svg class="ic"><use href="#i-music"/></svg><span>Hudba</span><i class="music-live"></i>
-          </button>
-          <button class="mq-play" id="mq-play" title="Přehrát / pozastavit"><svg class="ic"><use href="#i-play"/></svg></button>
-        </div>
-        <div class="music-quick" id="music-quick">
-          <svg class="ic ic-sm"><use href="#i-vol-low"/></svg>
-          <input type="range" id="mq-vol" min="0" max="100" value="50" title="Hlasitost">
-        </div>
-      </div>
-      <button class="nav-item" id="settings-btn" title="Nastavení"><svg class="ic"><use href="#i-sliders"/></svg><span>Nastavení</span></button>
+      <button class="nav-item" id="settings-btn" title="Nastavení"><svg class="ic"><use href="#i-sliders"/></svg><span>Nastavení</span><i class="settings-due" title="Je čas na export dat"></i></button>
     </div>
   </aside>
 
@@ -202,15 +217,6 @@
         <div class="history" id="history"></div>
         <button class="pill pill-sm history-more" id="history-more" hidden>Zobrazit další</button>
 
-        <h2 class="section-title">Data</h2>
-        <div id="export-reminder" class="export-reminder" style="display:none" onclick="App.doExport();this.style.display='none'"></div>
-        <div class="data-actions">
-          <button class="pill" id="export-btn"><svg class="ic"><use href="#i-download"/></svg>Export dat</button>
-          <button class="pill" id="import-btn"><svg class="ic"><use href="#i-upload"/></svg>Import dat</button>
-          <button class="pill pill-danger" id="reset-all-btn"><svg class="ic"><use href="#i-trash"/></svg>Smazat vše</button>
-        </div>
-        <input type="file" id="import-file" accept=".json" hidden>
-        <div class="version">Study Timer v5.1</div>
       </div>
     </section>
   </main>
@@ -299,7 +305,17 @@
         <div><kbd>Esc</kbd><span>Zavřít okno / ukončit soustředění</span></div>
       </div>
     </div>
-    <div class="modal-btns"><button class="modal-btn-ok" id="settings-close">Hotovo</button></div>
+    <div class="set-group">
+      <div class="section-title">Data</div>
+      <div id="export-reminder" class="export-reminder" style="display:none" onclick="App.doExport()"></div>
+      <div class="data-actions">
+        <button class="pill" id="export-btn"><svg class="ic"><use href="#i-download"/></svg>Export</button>
+        <button class="pill" id="import-btn"><svg class="ic"><use href="#i-upload"/></svg>Import</button>
+        <button class="pill pill-danger" id="reset-all-btn"><svg class="ic"><use href="#i-trash"/></svg>Smazat vše</button>
+      </div>
+      <input type="file" id="import-file" accept=".json" hidden>
+    </div>
+    <div class="modal-btns"><span class="version" id="app-version"></span><button class="modal-btn-ok" id="settings-close">Hotovo</button></div>
   </div>
 </div>
 

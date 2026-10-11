@@ -122,7 +122,7 @@ function render(){
   else if(state.remaining===total)els.statusLine.textContent='Připraven · klikni na čísla pro úpravu délky';
   else els.statusLine.textContent='Pozastaveno';
   const active=state.running||state.remaining<total;
-  document.title=active?mm+':'+ss+' · '+(isWork?'Práce':breakName())+(state.running?'':' (pauza)'):'Pomodoro';
+  document.title=active?mm+':'+ss+' · '+(isWork?'Práce':breakName())+(state.running?'':' (pauza)'):'Study Timer';
   const okCol=getComputedStyle(document.body).getPropertyValue('--ok').trim()||'#2F8F5B';
   Charts.favicon(progress,isWork?projColor():okCol,active);
 }
@@ -141,14 +141,14 @@ function updateStatsPanel(){
     st('stat-today-time',fmtHM(ps.todaySec));st('stat-today-sessions',ps.todaySessions);st('stat-today-starts','—');
     st('stat-week-time',fmtHM(ps.weekSec));st('stat-total-time',fmtHM(ps.totalSec));
     st('stat-total-sessions',ps.sessions);st('stat-total-starts','—');st('stat-streak',streakText(ps.streak));
-    Charts.heatmap(q('heatmap'),ps.heatmap,{color:ps.color});
+    Charts.heatmap(q('heatmap'),ps.heatmap,{color:ps.color,fluid:true});
   }else{
     hdr.style.display='none';
     const s=Stats.get();
     st('stat-today-time',s.today.hours+'h '+s.today.minutes+'min');st('stat-today-sessions',s.today.sessions);st('stat-today-starts',s.today.starts);
     st('stat-total-time',s.total.hours+'h '+s.total.minutes+'min');st('stat-total-sessions',s.total.sessions);st('stat-total-starts',s.total.starts);
     st('stat-week-time',s.week.hours+'h '+s.week.minutes+'min');st('stat-streak',streakText(s.streak));
-    Charts.heatmap(q('heatmap'),s.heatmap,{});
+    Charts.heatmap(q('heatmap'),s.heatmap,{fluid:true});
   }
 }
 function st(id,v){const e=q(id);if(e)e.textContent=v;}
@@ -204,11 +204,11 @@ function renderOverview(){
       +`<div class="p-actions"><button class="p-btn" onclick="App.editProject('${p.id}')">Upravit</button><button class="p-btn" onclick="App.addTimeDialog('${p.id}')">Přidat čas</button><button class="p-btn danger" onclick="App.deleteProject('${p.id}')">Smazat</button></div></div>`;}).join('')
     +'<div class="add-project-card" id="add-project-btn">'+icon('plus')+'Nový projekt</div>';
   q('add-project-btn').addEventListener('click',()=>openModal());
-  prjs.forEach(p=>{const ps=Projects.getStats(p.id);if(ps)Charts.heatmap(q('hm-'+p.id),ps.heatmap,{color:ps.color,labels:false});});
+  prjs.forEach(p=>{const ps=Projects.getStats(p.id);if(ps)Charts.heatmap(q('hm-'+p.id),ps.heatmap,{color:ps.color,fluid:true});});
   // Celková aktivita · 15 týdnů
-  const combined=[];for(let i=104;i>=0;i--){const k=dayKey(daysAgo(i));let tot=0;prjs.forEach(p=>{if(p.days&&p.days[k])tot+=p.days[k];});combined.push({date:k,seconds:tot});}
+  const combined=[];for(let i=weeksBack(15);i>=0;i--){const k=dayKey(daysAgo(i));let tot=0;prjs.forEach(p=>{if(p.days&&p.days[k])tot+=p.days[k];});combined.push({date:k,seconds:tot});}
   const acc=getComputedStyle(document.body).getPropertyValue('--accent').trim()||'#6E3CD0';
-  Charts.heatmap(q('overview-hm'),combined,{color:acc});
+  Charts.heatmap(q('overview-hm'),combined,{color:acc,fluid:true});
   renderHistory();
 }
 function card(l,v){return'<div class="overview-card"><div class="label">'+l+'</div><div class="value">'+v+'</div></div>';}
@@ -288,12 +288,13 @@ function onKey(e){
 
 // ── Init ─────────────────────────────────
 function init(){
-  initRefs();bindEditClicks();setupNav();Player.init();Theme.init();Settings.init();Charts.initTip();
+  initRefs();bindEditClicks();
+  q('app-version').textContent='Study Timer v'+APP_VERSION;setupNav();Player.init();Theme.init();Settings.init();Charts.initTip();
   q('focus-toggle').addEventListener('click',toggleFocus);
   els.startBtn.addEventListener('click',toggleStart);els.resetBtn.addEventListener('click',resetTimer);els.skipBtn.addEventListener('click',skipPhase);
   els.workBtn.addEventListener('click',()=>{if(state.running||state.mode==='work')return;if(state.remaining<totalSec())state.session++;switchMode('work');});
   els.breakBtn.addEventListener('click',()=>{if(state.running||state.mode==='break')return;if(state.remaining<totalSec())recordPartial();switchMode('break');});
-  q('reset-all-btn').addEventListener('click',()=>{if(confirm('Opravdu smazat VŠECHNY statistiky a projekty? Tato akce je nevratná.')){['pomodoro_stats_v2','pomodoro_durations_v1','pomodoro_notes_v1'].forEach(k=>localStorage.removeItem(k));Projects.setAll([]);location.reload();}});
+  q('reset-all-btn').addEventListener('click',()=>{if(confirm('Opravdu smazat VŠECHNY statistiky a projekty? Tato akce je nevratná.')){['studytimer_stats_v2','studytimer_durations_v1','studytimer_notes_v1'].forEach(k=>localStorage.removeItem(k));Projects.setAll([]);location.reload();}});
   q('export-btn').addEventListener('click',doExport);
   q('import-btn').addEventListener('click',()=>q('import-file').click());
   q('import-file').addEventListener('change',e=>{Stats.importData(e.target.files[0],()=>{durations=Stats.loadDurations()||durations;state.remaining=totalSec();updateModeTabs();updateStatsPanel();refreshProjectSelect();renderOverview();render();e.target.value='';});});
@@ -319,14 +320,14 @@ function init(){
   refreshProjectSelect();render();updateStatsPanel();
   setInterval(()=>{if(state.running)updateStatsPanel();},30000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&state.running)tick();});
-  // připomínka exportu
-  const lastExp=localStorage.getItem('pomodoro_last_export');
+  // připomínka exportu – v Nastavení; tečka na tlačítku Nastavení, když je export po splatnosti
+  const lastExp=localStorage.getItem('studytimer_last_export');
   const daysSince=lastExp?Math.floor((Date.now()-new Date(lastExp).getTime())/86400000):999;
   const remEl=q('export-reminder');
-  if(daysSince>=7&&remEl){remEl.textContent='Poslední export: '+(lastExp?daysSince+' '+plDays(daysSince)+' zpět':'nikdy')+' · klikni pro export';remEl.style.display='block';}
+  if(daysSince>=7&&remEl){remEl.textContent='Poslední export: '+(lastExp?daysSince+' '+plDays(daysSince)+' zpět':'nikdy')+' · klikni pro export';remEl.style.display='block';q('settings-btn').classList.add('due');}
 }
 
-function doExport(){Stats.exportData();const r=q('export-reminder');if(r)r.style.display='none';}
+function doExport(){Stats.exportData();const r=q('export-reminder');if(r)r.style.display='none';q('settings-btn').classList.remove('due');}
 
 return{init,editProject,deleteProject,addTimeDialog,doExport};})();
 document.addEventListener('DOMContentLoaded',App.init);

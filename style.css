@@ -134,8 +134,9 @@ button { background: none; border: none; cursor: pointer; }
 .side-empty:hover { border-color: var(--faint); color: var(--fg); }
 
 .side-foot { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; }
-.music-row { display: flex; align-items: center; gap: 4px; }
-.music-open { flex: 1; }
+.music-quick-wrap { position: relative; margin-top: 2px; }
+.music-row { display: flex; align-items: center; gap: 2px; }
+.music-open { flex: 1; min-width: 0; }
 .music-live {
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--accent); margin-left: auto; opacity: 0;
@@ -143,20 +144,35 @@ button { background: none; border: none; cursor: pointer; }
 }
 .music-open.playing .music-live { opacity: 1; animation: pulse 1.6s ease-in-out infinite; }
 @keyframes pulse { 50% { transform: scale(1.6); opacity: .45; } }
-.mq-play {
-  width: 32px; height: 32px; border-radius: var(--r);
+.mq-btn {
+  width: 30px; height: 32px; border-radius: var(--r);
   display: grid; place-items: center; color: var(--muted); flex: none;
 }
-.mq-play .ic { width: 13px; height: 13px; }
-.mq-play:hover { background: var(--hover); color: var(--fg); }
+.mq-btn .ic { width: 13px; height: 13px; }
+.mq-btn:hover { background: var(--hover); color: var(--fg); }
+/* hlasitost: plovoucí vrstva pod řádkem, překryje menu a nic neposouvá */
 .music-quick {
-  display: flex; align-items: center; gap: 8px;
-  padding: 0 12px; color: var(--muted);
-  max-height: 0; opacity: 0; overflow: hidden;
-  transition: max-height .2s, opacity .2s, padding .2s;
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 20;
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 10px 12px 8px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+  color: var(--muted);
+  opacity: 0; visibility: hidden; transform: translateY(-4px);
+  transition: opacity .15s, transform .15s, visibility 0s .15s;
 }
+.music-quick::before { content: ""; position: absolute; left: 0; right: 0; top: -6px; height: 6px; } /* most pro hover */
 .music-quick-wrap:hover .music-quick,
-.music-quick-wrap:focus-within .music-quick { max-height: 40px; opacity: 1; padding: 8px 12px 6px; }
+.music-quick-wrap:focus-within .music-quick {
+  opacity: 1; visibility: visible; transform: none; transition: opacity .15s, transform .15s, visibility 0s;
+}
+.mq-track { font-size: 12.5px; color: var(--fg2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mq-vol-row { display: flex; align-items: center; gap: 8px; }
+
+/* tečka na Nastavení, když je čas na export */
+#settings-btn { position: relative; }
+.settings-due { display: none; width: 6px; height: 6px; border-radius: 50%; background: var(--warn-fg); margin-left: auto; }
+#settings-btn.due .settings-due { display: block; }
 
 /* ── RANGE ────────────────────────────────── */
 input[type="range"] {
@@ -354,11 +370,24 @@ body.mode-break #mode-label { color: var(--ok); }
 .stat-line .value { font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* heatmapy */
-.hm { --hm: 24px; --hm-gap: 4px; display: flex; gap: 8px; }
-.hm-days, .hm-cells { display: grid; grid-template-rows: repeat(7, var(--hm)); gap: var(--hm-gap); }
-.hm-days span { font-size: 10.5px; line-height: var(--hm); color: var(--faint); }
-.hm-cells { grid-auto-flow: column; grid-auto-columns: var(--hm); }
+.hm {
+  --hm: 24px; --hm-gap: 4px;
+  display: grid; width: max-content;
+  grid-template-rows: repeat(7, var(--hm));
+  grid-template-columns: auto; grid-auto-columns: var(--hm); grid-auto-flow: column;
+  gap: var(--hm-gap);
+}
+.hm-day { font-size: 10.5px; line-height: var(--hm); color: var(--faint); padding-right: 4px; white-space: nowrap; }
+.hm-nolabels { grid-template-columns: none; }
 .hm-cell { width: var(--hm); height: var(--hm); border-radius: 4px; background: var(--hover); }
+/* přes celou šířku: sloupce = týdny, buňky se roztáhnou (výška má strop) */
+.hm.hm-fluid {
+  width: auto;
+  grid-template-columns: auto repeat(var(--hm-w, 5), minmax(0, 1fr));
+  grid-template-rows: repeat(7, auto);
+}
+.hm-fluid .hm-day { line-height: 1; align-self: center; }
+.hm-fluid .hm-cell { width: 100%; height: auto; aspect-ratio: 1.6; max-height: 34px; border-radius: 5px; }
 .hm-cell.hm-pad { background: transparent; }
 .hm-cell[data-tip]:hover { outline: 1.5px solid var(--fg2); outline-offset: 1px; }
 .hm-cell.today { box-shadow: inset 0 0 0 1.5px var(--faint); }
@@ -393,6 +422,8 @@ body.mode-break #mode-label { color: var(--ok); }
 .p-bar-wrap { margin-top: 10px; height: 4px; border-radius: 2px; background: var(--hover); overflow: hidden; }
 .p-bar { height: 100%; border-radius: 2px; transition: width .4s; }
 .p-heatmap { --hm: 13px; --hm-gap: 3px; margin-top: 14px; }
+.p-heatmap .hm-day { font-size: 9.5px; padding-right: 3px; }
+.p-heatmap.hm-fluid .hm-cell { max-height: 16px; border-radius: 3px; }
 .p-heatmap .hm-cell { border-radius: 3px; }
 .p-actions { display: flex; gap: 2px; margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--line); }
 .p-btn {
@@ -410,7 +441,8 @@ body.mode-break #mode-label { color: var(--ok); }
 }
 .add-project-card:hover { border-color: var(--faint); color: var(--fg); background: var(--panel); }
 
-.overview-hm { --hm: 20px; overflow-x: auto; padding-bottom: 4px; }
+.overview-hm { --hm: 20px; padding-bottom: 4px; }
+.overview-hm.hm-fluid .hm-cell { max-height: 26px; border-radius: 4px; }
 
 .export-reminder {
   display: inline-block; width: fit-content; margin-bottom: 12px;
@@ -434,7 +466,7 @@ body.mode-break #mode-label { color: var(--ok); }
 .pill-danger:hover { background: var(--danger-soft); border-color: transparent; }
 .pill-sm { height: 28px; padding: 0 10px; font-size: 12.5px; }
 .pill-sm .ic { width: 13px; height: 13px; }
-.version { margin-top: 48px; font-size: 12px; color: var(--faint); }
+.version { margin-right: auto; align-self: center; font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
 
 /* ── MODALY + PŘEHRÁVAČ ───────────────────── */
 .modal-overlay, .music-overlay {
@@ -565,8 +597,10 @@ body.focus-exit .timer-card { animation: focusIn .35s cubic-bezier(.22,.61,.36,1
   .nav { flex-direction: row; }
   .nav-item { width: auto; height: 32px; padding: 0 10px; gap: 7px; font-size: 13.5px; }
   .side-section { display: none; }
-  .side-foot { border: none; margin: 0 0 0 auto; padding: 0; }
-  .music-open span, .music-quick, .daily { display: none !important; }
+  .side-foot { border: none; margin: 0; padding: 0; }
+  .music-quick-wrap { margin: 0 0 0 auto; }
+  .music-open span, .music-quick, .mq-skip, .daily { display: none !important; }
+  .settings-due { position: absolute; top: 6px; right: 6px; margin: 0; }
   .side-foot { display: flex; align-items: center; gap: 2px; }
   #settings-btn { width: 32px; padding: 0; justify-content: center; }
   #settings-btn span { display: none; }
@@ -574,7 +608,10 @@ body.focus-exit .timer-card { animation: focusIn .35s cubic-bezier(.22,.61,.36,1
   .music-open { width: 32px; padding: 0; justify-content: center; position: relative; }
   .music-open .music-live { position: absolute; top: 6px; right: 6px; }
   .main { overflow: visible; }
-  .topbar { position: static; }
+  /* Lišta tu nelepí, takže rozmazané pozadí nepotřebuje. Se static by se ::before (position:absolute)
+     vztáhl k celé stránce a rozmazal by všechno pod sebou – to byla chyba z 5.1. */
+  .topbar { position: relative; }
+  .topbar::before { display: none; }
   .topbar-inner, .page { padding-left: 16px; padding-right: 16px; }
   .page-title { font-size: 28px; }
   .project-selector { display: block; }
@@ -767,5 +804,6 @@ kbd {
   font-family: var(--f-mono); font-size: 11.5px; color: var(--fg);
   background: var(--bg); border: 1px solid var(--line); box-shadow: 0 1px 0 var(--line);
 }
-.modal-settings .modal-btns { margin-top: 10px; }
+.modal-settings .modal-btns { margin-top: 10px; align-items: center; }
+.set-group .export-reminder { margin-bottom: 10px; }
 .modal label.switch-row { display: flex; margin: 4px 0 0; font-size: 13.5px; color: var(--fg2); }

@@ -1,6 +1,6 @@
 // ═══════ THEME ═══════
 // Motiv (Výchozí / Papír / Les) = atribut data-skin na <html>; režim světlý/tmavý = třída .light na <body>.
-const Theme=(()=>{const SK='pomodoro_skin',MK='pomodoro_theme';
+const Theme=(()=>{const SK='studytimer_skin',MK='studytimer_theme';
 const SKINS=[
   {id:'default',name:'Výchozí',light:['#FBFAFD','#F4F3F7','#6E3CD0','#1C1B22'],dark:['#17161B','#121115','#A887F0','#ECEAF2']},
   {id:'paper',name:'Papír',light:['#F4ECD8','#E6DABC','#944B29','#3B3226'],dark:['#1F1A14','#17130E','#D08A5C','#E6D9C0'],serif:true},

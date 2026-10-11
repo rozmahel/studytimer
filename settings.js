@@ -1,6 +1,6 @@
 // ═══════ SETTINGS ═══════
-// Denní cíl a volitelná dlouhá přestávka. Ukládá se do pomodoro_settings_v1 a jde i do exportu.
-const Settings=(()=>{const K='pomodoro_settings_v1';
+// Denní cíl a volitelná dlouhá přestávka. Ukládá se do studytimer_settings_v1 a jde i do exportu.
+const Settings=(()=>{const K='studytimer_settings_v1';
 const D={dailyGoalH:4,longOn:false,longSec:20*60,longEvery:4};
 function get(){try{return{...D,...(JSON.parse(localStorage.getItem(K))||{})};}catch{return{...D};}}
 function set(p){const s={...get(),...p};localStorage.setItem(K,JSON.stringify(s));document.dispatchEvent(new CustomEvent('settingschange'));return s;}
