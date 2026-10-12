@@ -14,8 +14,23 @@
 try{if(!localStorage.getItem('studytimer_migrated')){for(var i=0;i<localStorage.length;i++){var o=localStorage.key(i);if(o&&o.indexOf('pomodoro_')===0){var n='studytimer_'+o.slice(9);if(localStorage.getItem(n)===null)localStorage.setItem(n,localStorage.getItem(o));}}localStorage.setItem('studytimer_migrated','1');}}catch(e){}
 </script>
 <script>try{var k=localStorage.getItem('studytimer_skin');if(k==="paper"||k==="forest")document.documentElement.setAttribute('data-skin',k);}catch(e){}</script>
+
+
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#007bff">
+  
 </head>
 <body class="mode-work">
+
+<script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(() => console.log('Service Worker zaregistrován'))
+        .catch((err) => console.error('Chyba při registraci SW:', err));
+    }
+  </script>
+  
+  
 <script>try{if(localStorage.getItem('studytimer_theme')!=='dark')document.body.classList.add('light');}catch(e){}</script>
 
 <!-- ICON SPRITE -->
